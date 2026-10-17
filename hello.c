@@ -38,8 +38,28 @@ int main(int argc,char *argv[])
 		fprintf(stdout,"\n");
 		for(int j=0;j<9;j++)
 		{
+			printf("|");
 			fprintf(stdout,"%c",sudoku[i][j]);
 		}
+		printf("|");
+		fprintf(stdout,"\n-------------------");
+	}
+	printf("\n");
+
+	int valid = checkvalid(sudoku);
+	if (valid > 0)
+	{
+		fprintf(stdout,"Είναι sudoku\n");
+	}
+	else if (valid == -1)
+	{
+		fprintf(stderr,"Λάθος σε οριζόντιο\n");
+		exit(-6);
+	}
+	else if (valid == -2)
+	{
+		fprintf(stderr,"Λάθος σε κάθετο\n");
+		exit(-7);
 	}
 		
 	return 0;
@@ -52,7 +72,7 @@ char ** fill (FILE *input)
 	pin = (char **)malloc(sizeof(char *) * ROWS);
 	if (pin == NULL)
 	{
-		fprintf(stderr,"Αδυναμία παραχώρησης μνήμης");
+		fprintf(stderr,"Αδυναμία παραχώρησης μνήμης\n");
 		exit(-3);
 	}
 	for (int rows = 0;rows < 9;rows++)
@@ -60,7 +80,7 @@ char ** fill (FILE *input)
 		pin[rows] = (char *)malloc(sizeof(char) * COL);
 		if (pin[rows] == NULL)
 		{
-			fprintf(stderr,"Αδυναμία παραχώρησης μνήμης");
+			fprintf(stderr,"Αδυναμία παραχώρησης μνήμης\n");
 			exit (-3);
 		}
 	}
@@ -94,7 +114,7 @@ char ** fill (FILE *input)
 		}
 		else
 		{
-			fprintf(stderr,"Δεν είναι σωστές η είσοδος στην σειρά %d και στην στήλη %d",rows,columns);
+			fprintf(stderr,"Δεν είναι σωστές η είσοδος στην σειρά %d και στην στήλη %d\n",rows+1,columns+1);
 			exit(-5);
 		}
 	}
@@ -104,11 +124,11 @@ char ** fill (FILE *input)
 
 int checkvalid(char **check)
 {
-	int *list = (char *)calloc(sizeof(int) * rows);
+	int *list = (int *)malloc(sizeof(int) * 10);
 
 	for (int i = 0;i < ROWS;i++)
 	{
-		for (int j = 0;j < 9;j++)
+		for (int j = 0;j < 10;j++)
 		{
 			list[j]=0;
 		}
@@ -120,8 +140,7 @@ int checkvalid(char **check)
 				list[knum]++;
 				if (list[knum] > 1)
 				{
-					fprintf(stderr, "Δεν γίνεται να επαναλαμβάνεται αριθμός στην ίδια γραμμή");
-					exit(-6);
+					return -1;
 				}
 			}
 		}
@@ -129,7 +148,7 @@ int checkvalid(char **check)
 
 	for (int k = 0;k < COL;k++)
 	{
-		for (int j = 0;j < 9;j++)
+		for (int j = 0;j < 10;j++)
 		{
 			list[j]=0;
 		}
@@ -141,10 +160,11 @@ int checkvalid(char **check)
 				list[inum]++;
 				if (list[inum] > 1)
 				{
-					fprintf(stderr, "Δεν γίνεται να επαναλαμβάνεται αριθμός στην ίδια στήλη");
-					exit(-7);
+					return -2;
 				}
 			}
 		}
 	}
+
+	return TRUE;
 }
