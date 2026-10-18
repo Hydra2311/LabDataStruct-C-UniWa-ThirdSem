@@ -9,9 +9,12 @@
 #define COL 9
 
 char ** fill(FILE *);
-int checkvalid(char **);
-int recursion(char **,int ,int );
-char **solve(char **);	
+int checkvalid(char **,WINDOW *);
+int checkrows(char **,WINDOW *);
+int checkcols(char **,WINDOW *);
+int check3x3(char **,WINDOW *);
+int recursion(char **,int ,int ,WINDOW *);
+char **solve(char **,WINDOW *);	
 
 int main(int argc,char *argv[])
 {
@@ -124,23 +127,16 @@ int main(int argc,char *argv[])
 				case 0:
 				{
 					mvwprintw(menuwin, 14, 10, "                          ");
-					int valid = checkvalid(sudoku);
-					if (valid > 0)
+					int valid = checkvalid(sudoku,menuwin);
+					if (valid)
 						mvwprintw(menuwin,13,12,"Είναι sudoku");
-					else if (valid == -1)
-						mvwprintw(menuwin,13,12,"Λάθος σε οριζόντιο");
-					else if (valid == -2)
-						mvwprintw(menuwin,13,12,"Λάθος σε κάθετο");
-					else
-						mvwprintw(menuwin,13,12,"Λάθος σε 3x3");
-
 					wrefresh(menuwin);
 					break;
 				}
 				case 1:
 				{
 					mvwprintw(menuwin,13,12,"                            ");
-					char **solved_sudoku = solve(sudoku);
+					char **solved_sudoku = solve(sudoku,menuwin);
 					if (solved_sudoku == NULL)
 					{
 						mvwprintw(menuwin, 14, 10, "Αδύνατη η επίλυση");
@@ -225,6 +221,10 @@ int main(int argc,char *argv[])
 	endwin();
 	if (sudoku != NULL)
 	{
+		for (int l = 0;l<9;l++)
+		{
+			free(sudoku[l]);
+		}
 		free(sudoku);
 	}
 	fclose(ifp);
@@ -289,9 +289,9 @@ char ** fill (FILE *input)
 	return pin;	
 }
 
-int checkvalid(char **check)
+int checkvalid(char **check,WINDOW *menuwin)
 {
-	int *list = (int *)malloc(sizeof(int) * 10);
+/*	int *list = (int *)malloc(sizeof(int) * 10);
 
 	for (int i = 0;i < ROWS;i++)
 	{
@@ -333,9 +333,9 @@ int checkvalid(char **check)
 		}
 	}
 	for (int p = 0;p  < 10;p++)
-        {
-        	list[p] = 0;
-        }
+    {
+    	list[p] = 0;
+    }
 
 	for (int h = 0;h < 3;h++)
 	{
@@ -360,19 +360,119 @@ int checkvalid(char **check)
 				}
 				i++;
 			}
-	                for (int p = 0;p  < 10;p++)
-	                {
-        	                list[p] = 0;
-                	}
+	        for (int p = 0;p  < 10;p++)
+	        {
+    	        list[p] = 0;
+            }
 		}
 	}
 
 	free(list);
+*/
+	if ((checkrows(check,menuwin)) && (checkcols(check,menuwin)) && (check3x3(check,menuwin)))
+		return TRUE;
+	else
+		return FALSE;
+}
 
+int checkrows(char **check,WINDOW *menuwin)
+{
+	int *list = (int *)malloc(sizeof(int) * 10);
+
+	for (int i = 0;i < ROWS;i++)
+	{
+		for (int j = 0;j < 10;j++)
+		{
+			list[j]=0;
+		}
+		for (int k = 0;k < COL;k++)
+		{
+			if (isdigit(check[i][k]))
+			{
+				int knum = check[i][k] - 48;
+				list[knum]++;
+				if (list[knum] > 1)
+				{
+					mvwprintw(menuwin,13,12,"Λάθος στην οριζόντιο [%d], ο αριθμός %d",i+1,knum);
+					return FALSE;
+				}
+			}
+		}
+	}
+
+	free(list);
 	return TRUE;
 }
 
-int recursion(char **sudoku,int row,int col)
+int checkcols(char **check,WINDOW *menuwin)
+{
+	int *list = (int *)malloc(sizeof(int) * 10);
+
+	for (int k = 0;k < COL;k++)
+	{
+		for (int j = 0;j < 10;j++)
+		{
+			list[j]=0;
+		}
+		for (int i = 0;i < ROWS;i++)
+		{
+			if (isdigit(check[i][k]))
+			{
+				int inum = check[i][k] - 48;
+				list[inum]++;
+				if (list[inum] > 1)
+				{
+					mvwprintw(menuwin,13,12,"Λάθος στην κάθετο [%d], ο αριθμός %d",k+1,inum);
+					return FALSE;
+				}
+			}
+		}
+	}
+
+	free(list);
+	return TRUE;
+}
+
+int check3x3(char **check,WINDOW *menuwin)
+{
+	int *list = (int *)calloc(10,sizeof(int));
+
+	for (int h = 0;h < 3;h++)
+	{
+		for (int g = 0;g < 3;g++)
+		{
+			int i = (h * 3);
+			for (int l = 0;l < 3;l++)
+			{
+				int k = (g * 3);
+				for (int j = 0;j < 3;j++)
+				{
+					if (isdigit(check[i][k]))
+					{	
+						int num = check[i][k] - 48;
+						list[num]++;
+						if (list[num] > 1)
+						{
+							mvwprintw(menuwin,13,12,"Λάθος στo 3x3 [%d][%d], ο αριθμός %d",h+1,g+1,num);
+							return FALSE;
+						}
+					}	
+					k++;
+				}
+				i++;
+			}
+	        for (int p = 0;p  < 10;p++)
+	        {
+                list[p] = 0;
+        	}
+		}
+	}
+
+	free(list);
+	return TRUE;
+}
+
+int recursion(char **sudoku,int row,int col,WINDOW *menuwin)
 {
 	if (row == ROWS)
 	{
@@ -381,34 +481,36 @@ int recursion(char **sudoku,int row,int col)
 
 	if (col == COL)
 	{
-		return recursion(sudoku,row+1,0);
+		return recursion(sudoku,row+1,0,menuwin);
 	}
 
 	if (isdigit(sudoku[row][col]))
 	{
-		return recursion(sudoku,row,col+1);
+		return recursion(sudoku,row,col+1,menuwin);
 	}
 
 	for (int i = 1;i < 10;i++)
 	{
 		sudoku[row][col] = i + '0';
-		if (checkvalid(sudoku) == TRUE)
+		if (checkvalid(sudoku,menuwin) == TRUE)
 		{
-			if (recursion(sudoku,row,col+1) == TRUE)
+			if (recursion(sudoku,row,col+1,menuwin) == TRUE)
 			{
+				mvwprintw(menuwin,13,12,"                                       ");
 				return TRUE;
 			}
 		}
 	}
 
 	sudoku[row][col] = ' ';
+	mvwprintw(menuwin,13,12,"                                       ");
 	return FALSE;
 }
 
 
-char **solve (char **sudoku)
+char **solve (char **sudoku,WINDOW *menuwin)
 {
-	if (recursion(sudoku,0,0))
+	if (recursion(sudoku,0,0,menuwin))
 		return sudoku;
 	else 
 		return NULL;
