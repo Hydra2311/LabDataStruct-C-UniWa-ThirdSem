@@ -43,6 +43,7 @@ int main(int argc,char *argv[])
 
     WINDOW *menuwin = newwin(LINES,COLS,0,0);  
     refresh();
+	box(menuwin,0,0);
 
     attron(A_BOLD);
     mvwprintw(menuwin,1,COLS/2-5,"SUDOKU");
@@ -122,28 +123,32 @@ int main(int argc,char *argv[])
 			{
 				case 0:
 				{
+					mvwprintw(menuwin, 14, 10, "                          ");
 					int valid = checkvalid(sudoku);
 					if (valid > 0)
-						mvwprintw(menuwin,11,2,"Είναι sudoku");
+						mvwprintw(menuwin,13,12,"Είναι sudoku");
 					else if (valid == -1)
-						mvwprintw(menuwin,11,2,"Λάθος σε οριζόντιο");
+						mvwprintw(menuwin,13,12,"Λάθος σε οριζόντιο");
 					else if (valid == -2)
-						mvwprintw(menuwin,11,2,"Λάθος σε κάθετο");
+						mvwprintw(menuwin,13,12,"Λάθος σε κάθετο");
 					else
-						mvwprintw(menuwin,11,2,"Λάθος σε 3x3");
-				break;
+						mvwprintw(menuwin,13,12,"Λάθος σε 3x3");
+
+					wrefresh(menuwin);
+					break;
 				}
 				case 1:
 				{
+					mvwprintw(menuwin,13,12,"                            ");
 					char **solved_sudoku = solve(sudoku);
 					if (solved_sudoku == NULL)
 					{
-						mvwprintw(menuwin, 11, 2, "Αδύνατη η επίλυση");
+						mvwprintw(menuwin, 14, 10, "Αδύνατη η επίλυση");
 						break;
 					}
 					else
 					{
-						WINDOW *solved = newwin(LINES,COLS,0,0);
+						mvwprintw(menuwin, 14, 10, "Επιτυχής επίλυση");
 						sudoku = solved_sudoku;
 						for(int i=0;i<9;i++)
 						{
@@ -154,9 +159,6 @@ int main(int argc,char *argv[])
 							}
 						}
 
-						wrefresh(solved);
-						delwin(solved);
-						touchwin(menuwin);
 						wrefresh(menuwin);
 						break;
 					}
