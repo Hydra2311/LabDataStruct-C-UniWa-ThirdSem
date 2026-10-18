@@ -9,6 +9,8 @@
 
 char ** fill(FILE *);
 int checkvalid(char **);
+int recursion(char **,int ,int );
+char **solve(char **);	
 
 int main(int argc,char *argv[])
 {
@@ -61,6 +63,28 @@ int main(int argc,char *argv[])
 		fprintf(stderr,"Λάθος σε κάθετο\n");
 		exit(-7);
 	}
+	else
+	{
+		fprintf(stderr,"Λάθος σε 3x3\n");
+		exit(-8);
+	}
+
+	printf("\n\n\n");
+
+	sudoku = solve(sudoku);
+
+        for(int i=0;i<9;i++)
+        {
+                fprintf(stdout,"\n");
+                for(int j=0;j<9;j++)
+                {
+                        printf("|");
+                        fprintf(stdout,"%c",sudoku[i][j]);
+                }
+                printf("|");
+                fprintf(stdout,"\n-------------------");
+        }
+        printf("\n");
 		
 	return 0;
 }
@@ -165,6 +189,85 @@ int checkvalid(char **check)
 			}
 		}
 	}
+	for (int p = 0;p  < 10;p++)
+        {
+        	list[p] = 0;
+        }
+
+	for (int h = 0;h < 3;h++)
+	{
+		for (int g = 0;g < 3;g++)
+		{
+			int i = (h * 3);
+			for (int l = 0;l < 3;l++)
+			{
+				int k = (g * 3);
+				for (int j = 0;j < 3;j++)
+				{
+					if (isdigit(check[i][k]))
+					{	
+						int num = check[i][k] - 48;
+						list[num]++;
+						if (list[num] > 1)
+						{
+							return -3;
+						}
+					}	
+					k++;
+				}
+				i++;
+			}
+	                for (int p = 0;p  < 10;p++)
+	                {
+        	                list[p] = 0;
+                	}
+		}
+	}
+
+	free(list);
 
 	return TRUE;
 }
+
+int recursion(char **sudoku,int row,int col)
+{
+	if (row == ROWS)
+	{
+		return TRUE;
+	}
+
+	if (col == COL)
+	{
+		return recursion(sudoku,row+1,0);
+	}
+
+	if (isdigit(sudoku[row][col]))
+	{
+		return recursion(sudoku,row,col+1);
+	}
+
+	for (int i = 1;i < 10;i++)
+	{
+		sudoku[row][col] = i + '0';
+		if (checkvalid(sudoku) == TRUE)
+		{
+			if (recursion(sudoku,row,col+1) == TRUE)
+			{
+				return TRUE;
+			}
+		}
+	}
+
+	sudoku[row][col] = ' ';
+	return FALSE;
+}
+
+
+char **solve (char **sudoku)
+{
+	if (recursion(sudoku,0,0))
+		return sudoku;
+	else 
+		return NULL;
+}
+
