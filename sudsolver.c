@@ -8,7 +8,9 @@
 #define ROWS 9
 #define COL 9
 
-char ** fill(FILE *);
+FILE *checkparams(int ,char **);
+char **fill(FILE *);
+void printSud(char **, WINDOW *);
 int checkvalid(char **,WINDOW *);
 int checkrows(char **,WINDOW *);
 int checkcols(char **,WINDOW *);
@@ -19,21 +21,9 @@ char **solve(char **,WINDOW *);
 int main(int argc,char *argv[])
 {
 	setlocale(LC_ALL, "");
-
-	if (argc != 2)
-	{
-		fprintf(stderr, "Λάθος παράμετροι. Πρέπει %s και ένα file .txt\n", argv[0]);
-		exit(-1);
-	}
-
 	FILE *ifp;
-	ifp = fopen(argv[1],"r");
 
-	if (ifp == NULL)
-	{
-		fprintf(stderr, "Αδυναμία ανοίγματος αρχείου");
-		exit(-2);
-	}
+	ifp = checkparams(argc,argv);
 
 	char **sudoku;
 
@@ -62,17 +52,7 @@ int main(int argc,char *argv[])
 
 	do
     {
-		if (sudoku != NULL)
-		{
-			for(int i=0;i<9;i++)
-			{
-				mvwprintw(menuwin, i + 3, 2, "|");
-				for(int j=0;j<9;j++)
-				{
-					mvwprintw(menuwin,i+3,(j * 2) + 3,"%c|",sudoku[i][j]);
-				}
-			}
-		}	
+		printSud(sudoku,menuwin);
 
         for(int i = 0;i < numbofch;i++)
         {
@@ -135,23 +115,14 @@ int main(int argc,char *argv[])
 					if (solved_sudoku == NULL)
 					{
 						mvwprintw(menuwin, 14, 10, "Αδύνατη η επίλυση");
-						break;
 					}
 					else
 					{
 						mvwprintw(menuwin, 14, 10, "Επιτυχής επίλυση");
 						sudoku = solved_sudoku;
-						for(int i=0;i<9;i++)
-						{
-							mvwprintw(menuwin, i + 3, 2, "|");
-							for(int j=0;j<9;j++)
-							{
-								mvwprintw(menuwin,i+3,(j * 2) + 3,"%c|",sudoku[i][j]);
-							}
-						}
+						printSud(sudoku,menuwin);
 
 						wrefresh(menuwin);
-						break;
 					}
 				}
 			}
@@ -160,61 +131,6 @@ int main(int argc,char *argv[])
 	while(choice != 'q' && choice != 'Q' && choice != ';');
 	/*Έχω χρησιμοποιήσει και το ; στον έλεγχο, για να μπορείς κάποιος να βγει
 	ακόμα και αν πατάει το q στα ελληνικά.*/
-
-	/*char **sudoku;
-
-	sudoku = fill(ifp);
-
-	for(int i=0;i<9;i++)
-	{
-		fprintf(stdout,"\n");
-		for(int j=0;j<9;j++)
-		{
-			printf("|");
-			fprintf(stdout,"%c",sudoku[i][j]);
-		}
-		printf("|");
-		fprintf(stdout,"\n-------------------");
-	}
-	printf("\n");
-
-	int valid = checkvalid(sudoku);
-	if (valid > 0)
-	{
-		fprintf(stdout,"Είναι sudoku\n");
-	}
-	else if (valid == -1)
-	{
-		fprintf(stderr,"Λάθος σε οριζόντιο\n");
-		exit(-6);
-	}
-	else if (valid == -2)
-	{
-		fprintf(stderr,"Λάθος σε κάθετο\n");
-		exit(-7);
-	}
-	else
-	{
-		fprintf(stderr,"Λάθος σε 3x3\n");
-		exit(-8);
-	}
-
-	printf("\n\n\n");
-
-	sudoku = solve(sudoku);
-
-        for(int i=0;i<9;i++)
-        {
-                fprintf(stdout,"\n");
-                for(int j=0;j<9;j++)
-                {
-                        printf("|");
-                        fprintf(stdout,"%c",sudoku[i][j]);
-                }
-                printf("|");
-                fprintf(stdout,"\n-------------------");
-        }
-        printf("\n");*/
 
 	endwin();
 	if (sudoku != NULL)
@@ -228,6 +144,57 @@ int main(int argc,char *argv[])
 	fclose(ifp);
 
 	return 0;
+}
+
+FILE *checkparams(int argc,char **argv)
+{
+	if (argc != 2)
+	{
+		fprintf(stderr, "Λάθος παράμετροι. Πρέπει %s και ένα file .txt\n", argv[0]);
+		exit(-1);
+	}
+
+	FILE *ifp;
+	ifp = fopen(argv[1],"r");
+
+	if (ifp == NULL)
+	{
+		fprintf(stderr, "Αδυναμία ανοίγματος αρχείου");
+		exit(-2);
+	}
+
+	int counter = 0; char ch;
+	while ((ch = fgetc(ifp)) != EOF)
+	{
+		if (ch >= '0' && ch <= '9')
+		{
+			counter++;
+		}
+	}
+
+	if (counter != 81)
+	{
+		fprintf(stderr,"Λάθος αριθμός Sudoku, πρέπει να είναι 9x9\n");
+		exit(-8);
+	}
+
+	rewind (ifp);
+	return ifp;
+}
+
+void printSud(char **sudoku,WINDOW *menuwin)
+{
+	if (sudoku != NULL)
+	{
+		for(int i=0;i<9;i++)
+		{
+			mvwprintw(menuwin, i + 3, 2, "|");
+			for(int j=0;j<9;j++)
+			{
+				mvwprintw(menuwin,i+3,(j * 2) + 3,"%c|",sudoku[i][j]);
+			}
+		}
+	}
 }
 
 char ** fill (FILE *input)
@@ -289,84 +256,6 @@ char ** fill (FILE *input)
 
 int checkvalid(char **check,WINDOW *menuwin)
 {
-/*	int *list = (int *)malloc(sizeof(int) * 10);
-
-	for (int i = 0;i < ROWS;i++)
-	{
-		for (int j = 0;j < 10;j++)
-		{
-			list[j]=0;
-		}
-		for (int k = 0;k < COL;k++)
-		{
-			if (isdigit(check[i][k]))
-			{
-				int knum = check[i][k] - 48;
-				list[knum]++;
-				if (list[knum] > 1)
-				{
-					return -1;
-				}
-			}
-		}
-	}
-
-	for (int k = 0;k < COL;k++)
-	{
-		for (int j = 0;j < 10;j++)
-		{
-			list[j]=0;
-		}
-		for (int i = 0;i < ROWS;i++)
-		{
-			if (isdigit(check[i][k]))
-			{
-				int inum = check[i][k] - 48;
-				list[inum]++;
-				if (list[inum] > 1)
-				{
-					return -2;
-				}
-			}
-		}
-	}
-	for (int p = 0;p  < 10;p++)
-    {
-    	list[p] = 0;
-    }
-
-	for (int h = 0;h < 3;h++)
-	{
-		for (int g = 0;g < 3;g++)
-		{
-			int i = (h * 3);
-			for (int l = 0;l < 3;l++)
-			{
-				int k = (g * 3);
-				for (int j = 0;j < 3;j++)
-				{
-					if (isdigit(check[i][k]))
-					{	
-						int num = check[i][k] - 48;
-						list[num]++;
-						if (list[num] > 1)
-						{
-							return -3;
-						}
-					}	
-					k++;
-				}
-				i++;
-			}
-	        for (int p = 0;p  < 10;p++)
-	        {
-    	        list[p] = 0;
-            }
-		}
-	}
-
-	free(list);
-*/
 	if ((checkrows(check,menuwin)) && (checkcols(check,menuwin)) && (check3x3(check,menuwin)))
 		return TRUE;
 	else
@@ -376,6 +265,11 @@ int checkvalid(char **check,WINDOW *menuwin)
 int checkrows(char **check,WINDOW *menuwin)
 {
 	int *list = (int *)malloc(sizeof(int) * 10);
+	if (list == NULL)
+	{
+		fprintf(stderr,"Αδυναμία παραχώρησης μνήμης\n");
+		exit(-3);
+	}
 
 	for (int i = 0;i < ROWS;i++)
 	{
@@ -405,6 +299,11 @@ int checkrows(char **check,WINDOW *menuwin)
 int checkcols(char **check,WINDOW *menuwin)
 {
 	int *list = (int *)malloc(sizeof(int) * 10);
+	if (list == NULL)
+	{
+		fprintf(stderr,"Αδυναμία παραχώρησης μνήμης\n");
+		exit(-3);
+	}
 
 	for (int k = 0;k < COL;k++)
 	{
@@ -434,6 +333,11 @@ int checkcols(char **check,WINDOW *menuwin)
 int check3x3(char **check,WINDOW *menuwin)
 {
 	int *list = (int *)calloc(10,sizeof(int));
+	if (list == NULL)
+	{
+		fprintf(stderr,"Αδυναμία παραχώρησης μνήμης\n");
+		exit(-3);
+	}
 
 	for (int h = 0;h < 3;h++)
 	{
@@ -520,4 +424,3 @@ char **solve (char **sudoku,WINDOW *menuwin)
 	else 
 		return NULL;
 }
-
