@@ -22,7 +22,7 @@ int main(int argc,char *argv[])
 
 	if (argc != 2)
 	{
-		fprintf(stderr, "Λάθος παράμετροι\n");
+		fprintf(stderr, "Λάθος παράμετροι. Πρέπει %s και ένα file .txt\n", argv[0]);
 		exit(-1);
 	}
 
@@ -60,7 +60,7 @@ int main(int argc,char *argv[])
 	int choice, highlighted = 0,numbofch = 2;
 	const char *choices[] = {"Έλεγξε", "Λύσε"};
 
-	while(1)
+	do
     {
 		if (sudoku != NULL)
 		{
@@ -85,12 +85,7 @@ int main(int argc,char *argv[])
         }
 
 		wrefresh(menuwin);
-        choice = wgetch(menuwin);
-
-        if (choice == 'q' || choice == 'Q' || choice == ';')
-        {
-            break;
-        }
+     	choice = wgetch(menuwin);
 
         switch (choice)
         {
@@ -162,6 +157,9 @@ int main(int argc,char *argv[])
 			}
 		}
 	}
+	while(choice != 'q' && choice != 'Q' && choice != ';');
+	/*Έχω χρησιμοποιήσει και το ; στον έλεγχο, για να μπορείς κάποιος να βγει
+	ακόμα και αν πατάει το q στα ελληνικά.*/
 
 	/*char **sudoku;
 
@@ -281,7 +279,7 @@ char ** fill (FILE *input)
 		}
 		else
 		{
-			fprintf(stderr,"Δεν είναι σωστές η είσοδος στην σειρά %d και στην στήλη %d\n",rows+1,columns+1);
+			fprintf(stderr,"Δεν είναι σωστή η είσοδος στην σειρά %d και στην στήλη %d\n",rows+1,columns+1);
 			exit(-5);
 		}
 	}
@@ -472,6 +470,13 @@ int check3x3(char **check,WINDOW *menuwin)
 	return TRUE;
 }
 
+/*Μέσω ενός αναδρομικού αλγοριθμού, δοκιμάζονται σε κάθε κενό κελί οι αριθμοί από το 1 εώς το 9
+και γίνεται έλεγχος του sudoku. Μετά γίνεται κάλεσμα της ίδιας συνάρτησης για το επόμενο κελί και κάνει το ίδιο μέχρι να πέσει 
+σε κάποιο κελί που δεν έχει κανέναν έγκυρο αριθμό, τότε αδειάζει το κελί και πηγαίνει πίσω, μετά στο προηγούμενο κάλεσμα της συνάρτησης
+συνεχίζεται η for επανάληψη και δοκιμάζει άλλους αριθμούς. Αυτό τα πίσω και μπροστά βήματα γίνονται μέχρι, είτε να φτάσουμε το row
+να γίνει 9, που σημαίνει ότι έχουμε ελέγξει όλο τον πίνακα από 0->8, είτε να μην υπάρχει κανένας αριθμός που να μπορέσει να μπει ώστε να 
+βγει sudoku*/
+
 int recursion(char **sudoku,int row,int col,WINDOW *menuwin)
 {
 	if (row == ROWS)
@@ -491,7 +496,7 @@ int recursion(char **sudoku,int row,int col,WINDOW *menuwin)
 
 	for (int i = 1;i < 10;i++)
 	{
-		sudoku[row][col] = i + '0';
+		sudoku[row][col] = i + 48;
 		if (checkvalid(sudoku,menuwin) == TRUE)
 		{
 			if (recursion(sudoku,row,col+1,menuwin) == TRUE)
