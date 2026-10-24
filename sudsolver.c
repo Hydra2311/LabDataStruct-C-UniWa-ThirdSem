@@ -254,6 +254,9 @@ char ** fill (FILE *input)
 	return pin;	
 }
 
+/*Συνάρτηση που καλεί όλες τις άλλες συναρτήσεις ελέγχου έτσι ώστε να επιστρέψει
+ένα τελικό απότελεσμα εάν ή όχι είναι valid sudoku.*/
+
 int checkvalid(char **check,WINDOW *menuwin)
 {
 	if ((checkrows(check,menuwin)) && (checkcols(check,menuwin)) && (check3x3(check,menuwin)))
@@ -261,6 +264,10 @@ int checkvalid(char **check,WINDOW *menuwin)
 	else
 		return FALSE;
 }
+
+/*Με την χρήση μονοδιάστατου πίνακα (list), ελέγχεται εάν ένας αριθμός εμφανίζεται
+παραπάνω από μία φορά σε μία σειρά. Αυτό γίνεται εφόσον το list χρησιμοποιείται ως μετρητής
+του κάθε αριθμού που δέχεται σαν index.*/
 
 int checkrows(char **check,WINDOW *menuwin)
 {
@@ -286,6 +293,7 @@ int checkrows(char **check,WINDOW *menuwin)
 				if (list[knum] > 1)
 				{
 					mvwprintw(menuwin,13,12,"Λάθος στην οριζόντιο [%d], ο αριθμός %d",i+1,knum);
+					free(list);
 					return FALSE;
 				}
 			}
@@ -295,6 +303,10 @@ int checkrows(char **check,WINDOW *menuwin)
 	free(list);
 	return TRUE;
 }
+
+/*Με την χρήση μονοδιάστατου πίνακα (list), ελέγχεται εάν ένας αριθμός εμφανίζεται
+παραπάνω από μία φορά σε μία στήλη. Αυτό γίνεται εφόσον το list χρησιμοποιείται ως μετρητής
+του κάθε αριθμού που δέχεται σαν index.*/
 
 int checkcols(char **check,WINDOW *menuwin)
 {
@@ -320,6 +332,7 @@ int checkcols(char **check,WINDOW *menuwin)
 				if (list[inum] > 1)
 				{
 					mvwprintw(menuwin,13,12,"Λάθος στην κάθετο [%d], ο αριθμός %d",k+1,inum);
+					free(list);
 					return FALSE;
 				}
 			}
@@ -329,6 +342,12 @@ int checkcols(char **check,WINDOW *menuwin)
 	free(list);
 	return TRUE;
 }
+
+/*Για κάθε κουτί ελέγχεται εάν επαναλαμβάνεται κάποιος αριθμός. Η επανάληψη h 
+και η επανάληψη g καθορίζουν σε ποια σειρά ή στήλη είμαστε. Το 3x3 ελέγχεται σειρά
+ανά σειρά, εκεί χρησιμεύουν οι επαναλήψεις l και j. Με την χρήση δεύτερου μονοδιάστατου
+πίνακα (list) τοποθετούμε τους αριθμούς που συναντάμε ως index του πίνακα
+με σκοπό να μετρήσουμε το πόσες φορές έχει εμφανιστεί.*/
 
 int check3x3(char **check,WINDOW *menuwin)
 {
@@ -356,6 +375,7 @@ int check3x3(char **check,WINDOW *menuwin)
 						if (list[num] > 1)
 						{
 							mvwprintw(menuwin,13,12,"Λάθος στo 3x3 [%d][%d], ο αριθμός %d",h+1,g+1,num);
+							free(list);
 							return FALSE;
 						}
 					}	
@@ -416,6 +436,8 @@ int recursion(char **sudoku,int row,int col,WINDOW *menuwin)
 	return FALSE;
 }
 
+/*Εάν η recursion γυρίσει true τότε επιστρέφει τον γεμισμένο πίνακα, αλλιώς 
+επιστρέφει NULL.*/
 
 char **solve (char **sudoku,WINDOW *menuwin)
 {
