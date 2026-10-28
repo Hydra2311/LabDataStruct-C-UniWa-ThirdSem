@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#define TRUE 1
+#define FALSE 0
 
 int *createpin(int );
 int *createcopy(int *,int );
@@ -7,10 +9,15 @@ void printpin(int *,int );
 int seiriaki(int *,int ,int );
 void mergesort(int *,int ,int );
 void merge(int *,int ,int ,int );
+int diadiki(int *,int ,int ,int );
+int *pinmerge(int *,int );
 
 int main()
 {
-        int size = 20;
+        int size;
+
+        fprintf(stdout,"Δώσε μέγεθος πίνακα: ");
+        scanf("%d",&size);
 
 	int *pin = createpin(size);
 
@@ -34,6 +41,16 @@ int main()
 	mergesort(copy,0,size-1);
 
 	printpin(copy,size);
+
+        fprintf(stdout,"Δώσε αριθμό για αναζήτηση: ");
+        scanf("%d",&numb);
+
+       	nquant = diadiki(copy,0,size-1,numb);
+
+        if (nquant == 0)
+                fprintf(stdout,"Δεν υπάρχει ο αριθμός στον πίνακα\n");
+        else
+                fprintf(stdout,"Ο αριθμός %d εμφανίζεται στον πίνακα %d φορές\n", numb,nquant);
 
 	return 0;
 }
@@ -159,4 +176,30 @@ void merge(int *pinakas,int left,int mid,int right)
 
 	free(pin1);
 	free(pin2);
+}
+
+int diadiki(int *pinakas,int low,int high,int num)
+{
+	int mid = (high+low)/2;
+
+	if (low > high)
+		return FALSE;
+
+	if (num > *(pinakas+mid))
+	{
+		return diadiki(pinakas,mid+1,high,num);
+	}
+	else if (num == *(pinakas + mid))
+	{
+		return TRUE;
+	}
+	else
+	{
+		return diadiki(pinakas,low,mid-1,num);
+	}
+}
+
+int *pinmerge(int *pinakas,int size)
+{
+	
 }
