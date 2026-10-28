@@ -3,21 +3,36 @@
 #define TRUE 1
 #define FALSE 0
 
+struct Search
+{
+	int found;
+	int counter;
+};
+
 int *createpin(int );
 int *createcopy(int *,int );
 void printpin(int *,int );
-int seiriaki(int *,int ,int );
+struct Search seiriaki(int *,int ,int );
 void mergesort(int *,int ,int );
 void merge(int *,int ,int ,int );
-int diadiki(int *,int ,int ,int );
+struct Search diadiki(int *,int ,int ,int );
 int *pinmerge(int *,int );
+void inputf(FILE *,int *,int );
+void outputf(FILE *,int *,int );
+void comparison(int *,int );
 
 int main()
 {
-        int size;
+	int size;
+	FILE *ifp = fopen("forone.txt","r"),*ofp = fopen("forone.txt","w");
+	if (ifp == NULL || ofp == NULL)
+	{
+		fprintf(stderr,"Αδυναμίας ανοίγματος αρχείου");
+		exit(-5);
+	}
 
-        fprintf(stdout,"Δώσε μέγεθος πίνακα: ");
-        scanf("%d",&size);
+    fprintf(stdout,"Δώσε μέγεθος πίνακα: ");
+    scanf("%d",&size);
 
 	int *pin = createpin(size);
 
@@ -27,12 +42,12 @@ int main()
 	int numb;
 	scanf("%d",&numb);
 
-	int nquant = seiriaki(pin,size,numb);
+	struct Search seir = seiriaki(pin,size,numb);
 
-	if (nquant == 0)
+	if (seir.found == FALSE)
 		fprintf(stdout,"Δεν υπάρχει ο αριθμός στον πίνακα\n");
 	else
-		fprintf(stdout,"Ο αριθμός %d εμφανίζεται στον πίνακα %d φορές\n", numb,nquant);
+		fprintf(stdout,"Ο αριθμός %d εμφανίζεται στον πίνακα\n", numb);
 
 	int *copy = createcopy(pin,size);
 
@@ -45,12 +60,26 @@ int main()
         fprintf(stdout,"Δώσε αριθμό για αναζήτηση: ");
         scanf("%d",&numb);
 
-       	nquant = diadiki(copy,0,size-1,numb);
+    struct Search diad = diadiki(copy,0,size-1,numb);
 
-        if (nquant == 0)
+        if (diad.found == FALSE)
                 fprintf(stdout,"Δεν υπάρχει ο αριθμός στον πίνακα\n");
         else
-                fprintf(stdout,"Ο αριθμός %d εμφανίζεται στον πίνακα %d φορές\n", numb,nquant);
+                fprintf(stdout,"Ο αριθμός %d εμφανίζεται στον πίνακα\n", numb);
+
+	int *doublepinakas = pinmerge(copy,size);
+
+	printpin(doublepinakas,size*2);
+
+	outputf(ofp,pin,size);
+	fclose(ofp);
+
+	rewind(ifp);
+	inputf(ifp,copy,size);
+	fclose(ifp);
+	printpin(copy,size);
+
+	comparison(copy,size);
 
 	return 0;
 }
@@ -98,17 +127,22 @@ void printpin(int *pinakas,int sizepin)
 	printf("\n");
 }
 
-int seiriaki(int *pinakas,int sizepin,int num)
+struct Search seiriaki(int *pinakas,int sizepin,int num)
 {
-	int quantity = 0;
+	struct Search p1;
+	p1.counter = 0;
+	p1.found = FALSE;
+	int i=0;
 
-	for (int i=0;i<sizepin;i++)
+	while (p1.found == FALSE && i<sizepin)
 	{
+		p1.counter++;
 		if (*(pinakas + i) == num)
-			quantity++;
+			p1.found = TRUE;
+		i++;
 	}
 
-	return quantity;
+	return p1;
 }
 
 void mergesort(int *pinakas,int left,int right)
@@ -178,28 +212,138 @@ void merge(int *pinakas,int left,int mid,int right)
 	free(pin2);
 }
 
-int diadiki(int *pinakas,int low,int high,int num)
+struct Search diadiki(int *pinakas,int low,int high,int num)
 {
-	int mid = (high+low)/2;
+	struct Search k1;
+	k1.counter = 0;
+	k1.found = FALSE;
 
 	if (low > high)
-		return FALSE;
+	{
+		return k1;
+	}
+
+	int mid = (high+low)/2;
 
 	if (num > *(pinakas+mid))
 	{
-		return diadiki(pinakas,mid+1,high,num);
+		k1 = diadiki(pinakas,mid+1,high,num);
+		k1.counter++;
+		return k1;
 	}
 	else if (num == *(pinakas + mid))
 	{
-		return TRUE;
+		k1.counter = 1;
+		k1.found = TRUE;
+		return k1;
 	}
 	else
 	{
-		return diadiki(pinakas,low,mid-1,num);
+		k1 = diadiki(pinakas,low,mid-1,num);
+		k1.counter++;
+		return k1;
 	}
 }
 
 int *pinmerge(int *pinakas,int size)
 {
-	
+	int *newpin = createpin(size);
+	mergesort(newpin,0,size-1);
+	printpin(newpin,size);
+	int *doublepin = createpin(size*2);
+
+	int i=0,j=0,k=0;
+	while (i < size && j < size)
+	{
+		if (*(pinakas+i) < *(newpin+j))
+		{
+			*(doublepin+k) = *(pinakas+i);
+			i++;
+		}
+		else
+		{
+			*(doublepin+k) = *(newpin+j);
+			j++;
+		}
+		k++;
+	}
+
+	while (i < size)
+	{
+		*(doublepin+k) = *(pinakas+i);
+		i++;
+		k++;
+	}
+
+	while (j < size)
+	{
+		*(doublepin+k) = *(newpin+j);
+		j++;
+		k++;
+	}
+
+	return doublepin;
+}
+
+void inputf(FILE *ifp,int *pinakas,int size)
+{
+	if (pinakas == NULL)
+	{
+		pinakas = (int *)malloc(sizeof(int) * size);
+		if (pinakas == NULL)
+		{
+			fprintf(stderr,"Αδυναμία παραχώρησης μνήμης");
+			exit(-1);
+		}
+	}
+
+	int number,i = 0;
+	while (i < size && fscanf(ifp, "%d", &number) == 1)
+	{
+		*(pinakas+i) = number;
+		i++;
+	}
+}
+
+void outputf(FILE *ofp,int *pinakas,int size)
+{
+	for (int i = 0;i<size;i++)
+	{
+		fprintf(ofp,"%d ",*(pinakas+i));
+	}
+}
+
+void comparison (int *pinakas,int size)
+{
+	int sc=0,dc=0;
+
+	for(int i=0;i<size;i++)
+	{
+		struct Search seir = seiriaki(pinakas,size,*(pinakas+i));
+
+		sc = sc + seir.counter;
+	}
+
+	mergesort(pinakas,0,size-1);
+	for(int i=0;i<size;i++)
+	{
+		struct Search diad = diadiki(pinakas,0,size-1,*(pinakas+i));
+
+		dc = dc + diad.counter;
+	}
+
+	if (dc > sc)
+	{
+		float difference = ((float)(dc-sc) / sc) * 100.0;
+		fprintf(stdout,"Ο αλγόριθμος της σειριακής αναζήτησης ήταν %.2f%% καλύτερος για μέγεθος %d πίνακα\n",difference,size);
+	}
+	else if (dc == sc)
+	{
+		fprintf(stdout,"Οι αλγόριθμοι ήταν ίδιο αποδοτικοί για μέγεθος %d πίνακα\n",size);
+	}
+	else
+	{
+		float difference = ((float)(sc-dc) / dc) * 100.0;
+		fprintf(stdout,"Ο αλγόριθμος της δυαδικής αναζήτησης ήταν %.2f%% καλύτερος για μέγεθος %d πίνακα\n",difference,size);
+	}
 }
