@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #define TRUE 1
 #define FALSE 0
 
@@ -9,6 +10,7 @@ struct Search
 	int counter;
 };
 
+void printmenu();
 int *createpin(int );
 int *createcopy(int *,int );
 void printpin(int *,int );
@@ -23,20 +25,138 @@ void comparison(int *,int );
 
 int main()
 {
+	srand(time(NULL));
+
 	int size;
-	FILE *ifp = fopen("forone.txt","r"),*ofp = fopen("forone.txt","w");
-	if (ifp == NULL || ofp == NULL)
-	{
-		fprintf(stderr,"Αδυναμίας ανοίγματος αρχείου");
-		exit(-5);
-	}
 
     fprintf(stdout,"Δώσε μέγεθος πίνακα: ");
     scanf("%d",&size);
+	fprintf(stdout,"\nΔώσε όνομα αρχείου: ");
+	char *file = (char *)malloc(20 * sizeof(char));
+	scanf("%s",file);
+
+	int *copy = NULL,numb,choice;
 
 	int *pin = createpin(size);
 
-	printpin(pin,size);
+
+	do
+	{
+		printf("\n");
+		printmenu();
+
+		do
+		{
+			printf("\nΕπιλογή: ");
+			scanf("%d",&choice);
+		} while (choice > 9 || choice <= 0);
+
+		switch (choice)
+		{
+			case 1:
+			{
+				fprintf(stdout,"Δώσε αριθμό για αναζήτηση: ");
+				int numb;
+				scanf("%d",&numb);
+
+				struct Search seir = seiriaki(pin,size,numb);
+
+				if (seir.found == FALSE)
+					fprintf(stdout,"\nΔεν υπάρχει ο αριθμός στον πίνακα\n");
+				else
+					fprintf(stdout,"\nΟ αριθμός %d εμφανίζεται στον πίνακα\n", numb);		
+					
+				break;
+			}
+			case 2:
+			{
+				copy = createcopy(pin,size);
+
+				printpin(copy,size);
+
+				mergesort(copy,0,size-1);
+
+				printpin(copy,size);		
+				
+				break;
+			}
+			case 3:
+			{
+				if (copy == NULL)
+				{
+					copy = createcopy(pin,size);
+					mergesort(copy,0,size-1);
+				}
+
+				fprintf(stdout,"\nΔώσε αριθμό για αναζήτηση: ");
+				scanf("%d",&numb);
+
+				struct Search diad = diadiki(copy,0,size-1,numb);
+
+				if (diad.found == FALSE)
+					fprintf(stdout,"\nΔεν υπάρχει ο αριθμός στον πίνακα\n");
+				else
+					fprintf(stdout,"\nΟ αριθμός %d εμφανίζεται στον πίνακα\n", numb);
+
+				break;
+			}
+			case 4:
+			{
+				int *doublepinakas = pinmerge(copy,size);
+				printpin(doublepinakas,size*2);
+				
+				break;
+			}
+			case 5:
+			{
+				printpin(pin,size);
+
+				break;
+			}
+			case 6:
+			{
+				FILE *ofp = fopen(file,"w");
+				if (ofp == NULL)
+				{
+					fprintf(stderr,"Αδυναμία ανοίγματος αρχείου για αποθήκευση.\n");
+					exit(-5);
+				}				
+				fprintf(stdout,"Επιτυχής αποθήκευση.\n");
+				outputf(ofp,pin,size);
+				fclose(ofp);
+
+				break;
+			}
+			case 7:
+			{
+				FILE *ifp = fopen(file,"r");
+				if (ifp == NULL)
+				{
+					fprintf(stderr,"Αδυναμία ανοίγματος αρχείου για φόρτωση.\n");
+					exit(-5);
+				}
+				inputf(ifp,pin,size);	
+				fprintf(stdout,"Επιτυχής φόρτωση.\n");
+				fclose(ifp);
+				
+				break;
+			}
+			case 8:
+			{
+				if (copy == NULL)
+				{
+					copy = createcopy(pin,size);
+					mergesort(copy,0,size-1);
+				}
+
+				comparison(copy,size);
+
+				break;
+			}
+		}
+	} while (choice != 9);
+	
+/*	printpin(pin,size);
 
 	fprintf(stdout,"Δώσε αριθμό για αναζήτηση: ");
 	int numb;
@@ -57,15 +177,15 @@ int main()
 
 	printpin(copy,size);
 
-        fprintf(stdout,"Δώσε αριθμό για αναζήτηση: ");
-        scanf("%d",&numb);
+    fprintf(stdout,"Δώσε αριθμό για αναζήτηση: ");
+    scanf("%d",&numb);
 
     struct Search diad = diadiki(copy,0,size-1,numb);
 
-        if (diad.found == FALSE)
-                fprintf(stdout,"Δεν υπάρχει ο αριθμός στον πίνακα\n");
-        else
-                fprintf(stdout,"Ο αριθμός %d εμφανίζεται στον πίνακα\n", numb);
+    if (diad.found == FALSE)
+        fprintf(stdout,"Δεν υπάρχει ο αριθμός στον πίνακα\n");
+    else
+        fprintf(stdout,"Ο αριθμός %d εμφανίζεται στον πίνακα\n", numb);
 
 	int *doublepinakas = pinmerge(copy,size);
 
@@ -79,9 +199,28 @@ int main()
 	fclose(ifp);
 	printpin(copy,size);
 
-	comparison(copy,size);
+	comparison(copy,size);*/
+
+	if (copy != NULL)
+	{
+		free(copy);
+	}
+	free (pin);
 
 	return 0;
+}
+
+void printmenu()
+{
+	fprintf(stdout, "1. Σειριακή αναζήτηση αρχείου\n"
+					"2. Ταξινόμηση αντιγράφου του πίνακα\n"
+					"3. Δυαδική αναζήτηση στοιχείου στον ταξινομημένο πίνακα.\n"
+					"4. Συγχώνευση ταξινομημένων πινάκων.\n"
+					"5. Εκτύπωση πίνακα.\n"
+					"6. Αποθήκευση σε αρχείο.\n"
+					"7. Φόρτωση από αρχείο\n"
+					"8. Σύγκριση τεχνικών αναζήτησης\n"
+					"9. Έξοδος\n");
 }
 
 int *createpin(int sizepin)
