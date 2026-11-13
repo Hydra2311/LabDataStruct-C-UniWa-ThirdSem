@@ -1,3 +1,14 @@
+/* (Για το ερώτημα 1 απά τα προαιρετικά όπου υπάρχει μία ερώτηση)
+
+    Ερώτηση : Γιατί δεν χρειάζεται παρόμοια λειτουργικότητα η υλοποίηση του 2ου ερωτήματος;
+    
+    Απάντηση : Εφόσον η λίστα από nodes που αποτελούν το stack δεν είναι περιορισμένου
+    μεγέθους αλλά μπορεί να μεταβληθεί αφαιρώντας ή προσθέτοντας, εάν κάθε φορά
+    που αφαιρούμε ένα node κάνουμε και free το memory που κρατάει τότε στο τέλος
+    δεν θα μας μέινει κάποιο άδειο κουτί χώρου όπως στον στατικό πίνακα. Επομένως
+    στον στατικό πίνακα αφού θα έχουμε τελειώσει με την χρήση του θα πρέπει να
+    διαχειριστούμε την μνήμη που μένει, ενώ στην λίστα διαχειρίζεται κατευθείαν.*/
+
 #include "libStack.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,13 +24,14 @@ struct Stack init (int size)
         exit(-1);
     }
     test.top = 0;
+    test.size = size;
 
     return test;
 }
 
-void push (struct Stack *initi,int size,int numb)
+void push (struct Stack *initi,int numb)
 {
-    if (initi->top >= size)
+    if (initi->top >= initi->size)
     {
         fprintf(stderr,"Το stack είναι γεμάτο. Αδυναμία εκχώρησης του αριθμού %d\n\n",numb);
         return;
@@ -35,10 +47,64 @@ int pop (struct Stack *init)
 
     if (init->top <= 0)
     {
-        fprintf(stderr,"To stack είναι άδειο.\n\n");
-        return -1;
+        fprintf(stdout,"Το stack είναι άδειο. Να διαγραφεί(1/0)? ");
+        int choice;
+        scanf("%d",&choice);
+        if (choice == 1)
+        {
+            free(init->stack);
+            init->stack = NULL;
+            return -1;
+        }
+        else
+        {
+            return -1;
+        }
     }
 
     init->top--;
     return forreturn = init->stack[init->top];
 }
+
+struct StackList * initlist()
+{
+    return NULL;
+}
+
+void pushlist (struct StackList **top,int numb)
+{
+    struct StackList *newpart = (struct StackList *)malloc(sizeof(struct StackList));
+    if (newpart == NULL)
+    {
+        fprintf(stderr,"Αδυναμία παραχώρησης μνήμης.\n");
+        exit(-1);        
+    }
+
+    newpart->number = numb;
+
+    newpart->next = *top;
+
+    *top = newpart;
+}
+
+int poplist (struct StackList **top)
+{
+    int number;
+
+    if (*top == NULL)
+    {
+        fprintf(stderr,"Το stack είναι άδειο\n");
+        return -1;
+    }
+
+    struct StackList *temp = *top;
+
+    number = temp->number;
+
+    *top = temp->next;
+
+    free(temp);
+    return number;
+}
+
+void 

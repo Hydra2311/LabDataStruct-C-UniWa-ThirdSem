@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include "libStack.h"
 
+struct Stack copystack (struct Stack *);
+struct StackList * copyslist (struct StackList **);
+
 int main()
 {
     int size=5;
@@ -10,18 +13,101 @@ int main()
 
     for(int i=0;i<(size + 1);i++)
     {
-        push(&mystack,size,i+1);
+        push(&mystack,i+1);
     }
+
+    struct Stack cpstack = copystack(&mystack);
 
     int number;
     
-    for(int i=0;i<(size+1);i++)
+    printf("----Βασικό Stack----\n");
+    for(int i=0;i<(mystack.size+1);i++)
     {
         number = pop(&mystack);
-        if (number != -1) printf("%d\n",number);
+        if (number != -1) 
+            printf("%d\n",number);
+    }
+
+    printf("----Αντίγραφο Stack----\n");
+    for(int i=0;i<(mystack.size+1);i++)
+    {
+        number = pop(&cpstack);
+        if (number != -1) 
+            printf("%d\n",number);
     }
 
     free(mystack.stack);
 
+    printf("\n\n\n");
+
+    struct StackList *top = initlist();
+
+    for(int i=0;i<(size + 1);i++)
+    {
+        pushlist(&top,i+1);
+    }
+
+    struct StackList *cplstack = copyslist(&top);
+
+    printf("----Βασική Λίστα Stack----\n");
+    for(int i=0;i<(size+1);i++)
+    {
+        number = poplist(&top);
+        if (number != -1) 
+            printf("%d\n",number);
+    }
+
+    printf("----Αντιγραμμένη Λίστα Stack----\n");
+    for(int i=0;i<(size+1);i++)
+    {
+        number = poplist(&cplstack);
+        if (number != -1) 
+            printf("%d\n",number);
+    }
+
     return 0;
 }
+
+    struct Stack copystack (struct Stack *mains)
+    {
+        int number,elements = mains->top;
+        struct Stack temp = init(elements);
+        struct Stack final = init(mains->size);
+
+        for(int i=0;i<elements;i++)
+        {
+            number = pop(mains);
+            push(&temp,number);
+        }
+
+        for(int i=0;i<elements;i++)
+        {
+            number = pop(&temp);
+            push(mains,number);
+            push(&final,number);
+        }
+
+        free (temp.stack);
+
+        return final;
+    }
+
+    struct StackList * copyslist (struct StackList **mains)
+    {
+        int number;
+        struct StackList *ttemp = initlist();
+        struct StackList *ffinal = initlist();
+
+        while ((number = poplist(mains)) != -1)
+        {
+            pushlist(&ttemp,number);
+        }
+
+        while ((number = poplist(&ttemp)) != -1)
+        {
+            pushlist(mains, number);
+            pushlist(&ffinal,number);
+        }
+
+        return ffinal;
+    }
