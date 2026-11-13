@@ -107,4 +107,68 @@ int poplist (struct StackList **top)
     return number;
 }
 
-void 
+struct Oura inito (int size)
+{
+    struct Oura base;
+    base.oura = (int *)malloc(sizeof(int) * size);
+    if (base.oura == NULL)
+    {
+        fprintf(stderr,"Αδυναμία παραχώρησης μνήμης\n");
+        exit(-1);
+    }
+
+    base.size = size;
+    base.front = 0;
+    base.back = 0;
+
+    return base;
+}
+
+void enqueue (struct Oura *foradd,int number)
+{
+    if (foradd->back >= foradd->size)
+    {
+        if (foradd->front == 0)
+        {
+            fprintf(stdout,"Η ουρά έχει γεμίσει\n");
+            return;
+        }
+        int j=0;
+        for(int i=foradd->front;i<foradd->back;i++)
+        {
+            foradd->oura[j] = foradd->oura[i];
+            j++;
+        }
+        foradd->front = 0;
+        foradd->back = j;
+    }
+    foradd->oura[foradd->back] = number;
+    foradd->back++;
+}
+
+int dequeue (struct Oura *fordel)
+{
+    if (fordel->front == fordel->back)
+    {
+        if (fordel->oura == NULL) 
+            return -1;
+
+        fprintf(stdout,"Άδειασε η ουρά. Να διαγραφεί(1/0)?\n");
+        int choice;
+        scanf("%d",&choice);
+        if (choice == 1)
+        {
+            free(fordel->oura);
+            fordel->oura = NULL;
+            return -1;
+        }
+        else
+        {
+            return -1;
+        }
+    }
+    int number = fordel->oura[fordel->front];
+    fordel->front++;
+
+    return number;
+}

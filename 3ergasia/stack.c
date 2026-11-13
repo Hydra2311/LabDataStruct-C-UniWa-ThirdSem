@@ -4,6 +4,7 @@
 
 struct Stack copystack (struct Stack *);
 struct StackList * copyslist (struct StackList **);
+struct Oura copyoura (struct Oura *);
 
 int main()
 {
@@ -19,6 +20,8 @@ int main()
     struct Stack cpstack = copystack(&mystack);
 
     int number;
+
+    printf("======STACK======\n");
     
     printf("----Βασικό Stack----\n");
     for(int i=0;i<(mystack.size+1);i++)
@@ -62,6 +65,33 @@ int main()
     {
         number = poplist(&cplstack);
         if (number != -1) 
+            printf("%d\n",number);
+    }
+
+    printf("\n======ΟΥΡΑ======\n");
+
+    struct Oura queue1 = inito(size);
+
+    for(int i=0;i<(size + 1);i++)
+    {
+        enqueue(&queue1,i+1);
+    }
+
+    struct Oura copyoura1 = copyoura(&queue1);
+
+    printf("---Βασική Ουρά---\n");
+    for(int i=0;i<(size + 1);i++)
+    {
+        number = dequeue(&queue1);
+        if (number != -1)
+            printf("%d\n",number);
+    }
+
+    printf("---Αντιγραμμένη Ουρά---\n");
+    for(int i=0;i<(size + 1);i++)
+    {
+        number = dequeue(&copyoura1);
+        if (number != -1)
             printf("%d\n",number);
     }
 
@@ -111,3 +141,19 @@ int main()
 
         return ffinal;
     }
+
+struct Oura copyoura (struct Oura *basic)
+{
+    int elements = basic->back - basic->front;
+    int number;
+    struct Oura final = inito(basic->size);
+
+    for(int i=0;i<elements;i++)
+    {
+        number = dequeue(basic);
+        enqueue(&final,number);
+        enqueue(basic, number);
+    }
+
+    return final;
+}
